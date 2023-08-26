@@ -42,8 +42,6 @@ def advantage(board):
                                 count += 1
                                 break
                     x += count
-    for i in range(18):
-        for j in range(18):
             if board[i][j] == "O":
                 for direction in directions:
                     count = 1
@@ -87,10 +85,22 @@ def showBoard(board):
         print(*board[i])
 
 def checkWin(board):
+    tie = True
     if checkCell(board,"X"):
         return 1
     elif checkCell(board,"O"):
         return 2
+    else:
+        for i in range(18):
+            for j in range(18):
+                if board[i][j] == ".":
+                    tie = False
+                    break
+            if not tie:
+                break
+    if tie:
+        return 3
+
 
 def checkCell(board,state):
     directions = [[0,1],[1,1],[1,0],[1,-1]]
@@ -171,39 +181,65 @@ def findMoves(board,turn):
     difPos = []
     for i in range(18):
         for j in range(18):
-            left = False
-            right = False
-            top = False
-            down = False
+            empty = []
             nb = deepcopy(board)
             if nb[i][j] == ".":
                 for k in range(2):
                     try:
                         if board[i][j+k+1] != ".":
-                            left = True
+                            empty.append(True)
                             break
                     except:
                         pass
                     try:
-                        if board[i][j-k-1] != ".":
-                            right = False
-                            break
+                        if j-k-1 >= 0:
+                            if board[i][j-k-1] != ".":
+                                empty.append(True)
+                                break
                     except:
                         pass
                     try:
                         if board[i+k+1][j] != ".":
-                            top = False
+                            empty.append(True)
                             break
                     except:
                         pass
                     try:
-                        if board[i-k-1][j] != ".":
-                            down = False
+                        if i-k-1 >= 0:
+                            if board[i-k-1][j] != ".":
+                                empty.append(True)
+                                break
+                    except:
+                        pass
+                    try:
+                        if board[i+k+1][j+k+1] != ".":
+                            empty.append(True)
                             break
                     except:
                         pass
+                    try:
+                        if j-k-1 >= 0:
+                            if board[i+k+1][j-k-1] != ".":
+                                empty.append(True)
+                                break
+                    except:
+                        pass
+                    try:
+                        if i-k-1 >= 0 and j-k-1 >= 0:
+                            if board[i-k-1][j-k-1] != ".":
+                                empty.append(True)
+                                break
+                    except:
+                        pass
+                    try:
+                        if i-k-1 >= 0:
+                            if board[i-k-1][j+k+1] != ".":
+                                empty.append(True)
+                                break
+                    except:
+                        pass
                 nb[i][j] = turn
-                if not left and not right and not top and not down:
+                if len(empty) > 0:
                     difPos.append(nb)
     return difPos
 
@@ -219,10 +255,11 @@ p2 = input("Please select a mode to be player 2 (h for human, c for computer): "
 mode = p1.strip() + p2.strip()
 win1 = False
 win2 = False
+tie = False
 
 if mode == "hh":
     showBoard(board)
-    while not win1 and not win2:
+    while not win1 and not win2 and not tie:
         for i in range(2):
             if i == 0:
                 getMove(False,"X")
@@ -236,16 +273,22 @@ if mode == "hh":
             elif checkWin(board) == 2:
                 win2 = True
                 break
+            elif checkWin(board) == 3:
+                tie = True
+                break
 
     if win1:
         print("Player 1 wins! 👏")
 
     elif win2:
         print("Player 2 wins! 👏")
+    
+    elif tie:
+        print("It's a tie!")
 
 elif mode == "hc":
     showBoard(board)
-    while not win1 and not win2:
+    while not win1 and not win2 and not tie:
         for i in range(2):
             if i == 0:
                 xMove = True
@@ -255,7 +298,7 @@ elif mode == "hc":
             else:
                 xMove = False
                 print("Computer is thinking...")
-                aiMove = getAIMove(board,alphaBeta(board,1,-inf,inf,False),False)
+                aiMove = getAIMove(board,alphaBeta(board,2,-inf,inf,False),False)
                 print(f"Computer moves to {aiMove[0]+1} {chr(aiMove[1]+65)}")
                 board[aiMove[0]][aiMove[1]] = "O"
                 showBoard(board)
@@ -268,10 +311,16 @@ elif mode == "hc":
                 win2 = True
                 break
 
+            elif checkWin(board) == 3:
+                tie = True
+                break
+
     if win1:
         print("Player 1 wins! 👏")
     elif win2:
         print("Computer wins! 🤖")
+    elif tie:
+        print("It's a tie!")
 
 elif mode == "ch":
     showBoard(board)
